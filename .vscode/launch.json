@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "export_onnx_256",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--model", "student",
+                "--weight", "./fold0_epoch_99_val_loss_6.386776_student_nme_0.04352_teacher_nme_0.03959.pth",
+                "--img_size", "256",
+            ]
+        },
+        {
+            "name": "export_onnx_128",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--model", "teacher",
+                "--weight", "./fold0_epoch_92_val_loss_4.397688_student_nme_0.04805_teacher_nme_0.04169.pth",
+                "--img_size", "128",
+            ]
+        }
+    ]
+}

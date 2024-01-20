@@ -10,7 +10,6 @@ import timm
 
 from torchvision.models.mobilenetv3 import InvertedResidual, InvertedResidualConfig
 
-
 # from lib.core.base_trainer.mobileone import MobileOneBlock
 class SeparableConv2d(nn.Module):
     """ Separable Conv
@@ -57,7 +56,8 @@ class ASPPPooling(nn.Module):
 
         x = self.pool(x)
 
-        x = F.interpolate(x, size=size)
+        scale_factor = int(size[0]) // int(x.shape[-1])
+        x = F.interpolate(x, scale_factor=(scale_factor, scale_factor))
         return x
 
 
@@ -432,7 +432,7 @@ class COTRAIN(nn.Module):
 
         )
 
-        
+
 
         return losses
 
@@ -510,26 +510,23 @@ class COTRAIN(nn.Module):
 
     def postp(self, hm):
 
-        #
         hm_score=hm[:,:98,...]
 
         hm_H = hm.size(2)
         hm_W = hm.size(3)
         bs = hm.size(0)
 
-        hm_score = hm_score.reshape([bs, 98, -1])
+        hm_score = hm_score.reshape([bs, 98, hm_H*hm_W])
 
-        score,hm_indx = torch.max(hm_score, dim=2)
+        score, hm_indx = torch.max(hm_score, dim=2, keepdim=True)
 
         #### add offside
+        offside_x = hm[:,98:2*98, ...].reshape([bs, 98, hm_H*hm_W])
+        offside_y = hm[:, 2*98:, ...].reshape([bs, 98, hm_H*hm_W])
 
-        offside_x=hm[:,98:2*98,...].reshape([bs, 98, -1])
-        offside_y = hm[:, 2*98:, ...].reshape([bs, 98, -1])
-
-
-        gether_indx=hm_indx.unsqueeze(-1)
-        offside_x = torch.gather(offside_x,dim=-1,index=gether_indx).squeeze(-1)
-        offside_y = torch.gather(offside_y,dim=-1,index=gether_indx).squeeze(-1)
+        gether_indx = hm_indx
+        offside_x = torch.gather(offside_x, dim=2, index=gether_indx)
+        offside_y = torch.gather(offside_y, dim=2, index=gether_indx)
 
 
         X = hm_indx % hm_W
@@ -539,19 +536,13 @@ class COTRAIN(nn.Module):
         X_fix = X + offside_x
         Y_fix = Y + offside_y
 
-        loc = torch.stack([X, Y], dim=2).float()
-        loc[..., 0] /= hm_W
-        loc[..., 1] /= hm_H
-        loc = loc.view(bs, -1)
+        loc = torch.cat([X, Y], dim=2).float()
+        loc /= hm_H
 
+        loc_fix = torch.cat([X_fix, Y_fix], dim=2).float()
+        loc_fix /= hm_H
 
-
-        loc_fix = torch.stack([X_fix, Y_fix], dim=2).float()
-        loc_fix[..., 0] /= hm_W
-        loc_fix[..., 1] /= hm_H
-        loc_fix = loc_fix.view(bs, -1)
-
-        return loc,loc_fix,score
+        return loc, loc_fix, score
 
     def forward(self, x, gt=None, gt_hm=None):
 
@@ -559,13 +550,14 @@ class COTRAIN(nn.Module):
 
         teacher_pre, teacher_hm, teacher_fms = self.teacher(x)
 
-        if self.inference :
+        if self.inference:
             if self.inference=='teacher':
                 hm_used=teacher_hm
             else:
                 hm_used=student_hm
-            teacher_pre, teacher_pre_full,score = self.postp(hm_used)
-            return teacher_pre_full  ,score
+            teacher_pre, teacher_pre_full, score = self.postp(hm_used)
+            merge = torch.cat([teacher_pre_full, score], dim=2)
+            return merge
 
         distill_loss = self.distill_loss(student_fms, teacher_fms)
 
@@ -581,8 +573,8 @@ class COTRAIN(nn.Module):
         teacher_loss = teacher_loss + teacher_hm_loss
 
         ### decode hm
-        student_pre,student_pre_full,_ = self.postp(student_hm)
-        teacher_pre,teacher_pre_full,_ = self.postp(teacher_hm)
+        student_pre, student_pre_full, _ = self.postp(student_hm)
+        teacher_pre, teacher_pre_full, _ = self.postp(teacher_hm)
 
         return student_loss, teacher_loss, distill_loss, student_pre, student_pre_full, teacher_pre, teacher_pre_full
 

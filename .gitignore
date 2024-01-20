@@ -6,3 +6,6 @@
 *.pth
 
 .DS_Store
+*.onnx
+*.engine
+*.profile

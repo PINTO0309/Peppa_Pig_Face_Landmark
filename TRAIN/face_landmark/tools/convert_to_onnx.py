@@ -2,13 +2,15 @@ import sys
 sys.path.append('.')
 
 
-from lib.core.base_trainer.model import COTRAIN
+from TRAIN.face_landmark.lib.core.base_trainer.model import COTRAIN
 
 
 import torch
 import torchvision
 import argparse
 import re
+import onnx
+from onnxsim import simplify
 
 
 
@@ -50,12 +52,24 @@ style_model.eval()
 # a list here shorter than the number of inputs to the model, and we will
 # only set that subset of names, starting from the beginning.
 
-
-torch.onnx.export(style_model,
-                  dummy_input,
-                  "face_kps.onnx" ,
-                  # dynamic_axes={'input': {2: 'height',
-                  #                        3: 'width',
-                  #                        }},
-                  input_names=["input"],
-                  output_names=["output"],opset_version=12)
+file = f"peppapig_{model}_1x3x{input_size}x{input_size}.onnx"
+torch.onnx.export(
+    style_model,
+    dummy_input,
+    file,
+    input_names=["input"],
+    output_names=["landmarks_xyscore"],
+    opset_version=11
+)
+model_onnx1 = onnx.load(file)
+model_onnx1 = onnx.shape_inference.infer_shapes(model_onnx1)
+onnx.save(model_onnx1, file)
+model_onnx2 = onnx.load(file)
+model_simp, check = simplify(model_onnx2)
+onnx.save(model_simp, file)
+model_onnx2 = onnx.load(file)
+model_simp, check = simplify(model_onnx2)
+onnx.save(model_simp, file)
+model_onnx2 = onnx.load(file)
+model_simp, check = simplify(model_onnx2)
+onnx.save(model_simp, file)
