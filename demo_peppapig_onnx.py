@@ -340,7 +340,7 @@ class PeppaPig(AbstractModel):
         self,
         *,
         runtime: Optional[str] = 'onnx',
-        model_path: Optional[str] = 'peppapig_student_Nx3x128x128.onnx',
+        model_path: Optional[str] = 'peppapig_teacher_Nx3x256x256.onnx',
         providers: Optional[List] = None,
     ):
         """PeppaPig
@@ -541,7 +541,7 @@ def main():
         '-fm',
         '--face_alignment_model',
         type=str,
-        default='peppapig_student_Nx3x128x128.onnx',
+        default='peppapig_teacher_Nx3x256x256.onnx',
     )
     parser.add_argument(
         '-v',
@@ -655,7 +655,7 @@ def main():
             cv2.circle(debug_image, (int(landmark[0]), int(landmark[1])), 1, (0, 255, 0), 2) \
                 for one_face_landmarks in landmarks \
                     for landmark in one_face_landmarks \
-                        if landmark[2] > 0.35
+                        if landmark[2] > 0.75
         ]
 
         cv2.putText(debug_image, f'{elapsed_time*1000:.2f} ms', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)

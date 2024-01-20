@@ -34,7 +34,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "-fm", "peppapig_student_Nx3x128x128.onnx",
+                "-fm", "peppapig_teacher_Nx3x256x256.onnx",
             ]
         }
     ]
