@@ -65,7 +65,7 @@ class FaceAna():
 
         boxes_return = np.array(boxes)
 
-        landmarks,states=self.face_landmark(image,boxes)
+        landmarks, states=self.face_landmark(image, boxes)
 
         ### refine the landmark
         landmarks = self.trace.calculate(image, landmarks)

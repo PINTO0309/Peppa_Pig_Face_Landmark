@@ -25,6 +25,17 @@
                 "--weight", "./fold0_epoch_92_val_loss_4.397688_student_nme_0.04805_teacher_nme_0.04169.pth",
                 "--img_size", "128",
             ]
+        },
+        {
+            "name": "demo",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-fm", "peppapig_student_Nx3x128x128.onnx",
+            ]
         }
     ]
 }

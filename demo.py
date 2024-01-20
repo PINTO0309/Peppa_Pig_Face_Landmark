@@ -28,8 +28,7 @@ def video(video_path_or_cam):
             #print('one iamge cost %f s'%(duration))
 
             fps=1/duration
-            cv2.putText(img_show, "X: " + "{:7.2f}".format(fps), (20, 20), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.75, (0, 0, 0), thickness=2)
+            cv2.putText(img_show, "X: " + "{:7.2f}".format(fps), (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), thickness=2)
 
             for face_index in range(len(result)):
 
@@ -47,8 +46,7 @@ def video(video_path_or_cam):
                         color=(255,255,255)
                     else:
                         color = (0, 0, 255)
-                    cv2.circle(img_show, (int(x_y[0]), int(x_y[1])),
-                                   color=color, radius=1, thickness=2)
+                    cv2.circle(img_show, (int(x_y[0]), int(x_y[1])), color=color, radius=1, thickness=2)
 
 
             cv2.namedWindow("capture", 0)
